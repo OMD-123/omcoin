@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaOm | Wallet Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.10.0/ethers.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mmBlue: '#037ddc',
+                        mmDark: '#121212',
+                        mmSurface: '#1e1e1e',
+                        mmGray: '#a0a0a0',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; }
+        .mm-card { background-color: #1e1e1e; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .mm-input { background-color: #2a2a2a; border: 1px solid #333; border-radius: 12px; color: white; transition: border-color 0.2s; }
+        .mm-input:focus { border-color: #037ddc; outline: none; }
+        .mm-btn-primary { background-color: #037ddc; transition: background-color 0.2s, transform 0.1s; }
+        .mm-btn-primary:hover { background-color: #0266b3; }
+        .mm-btn-primary:active { transform: scale(0.98); }
+        .mm-btn-secondary { background-color: #333; transition: background-color 0.2s; }
+        .mm-btn-secondary:hover { background-color: #444; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-[420px] mm-card overflow-hidden">
+        <div class="bg-[#2a2a2a] p-6 flex justify-between items-center border-b border-white/5">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center font-bold text-white text-xs">O</div>
+                <span class="font-semibold text-sm">OmCoin Wallet</span>
+            </div>
+            <div id="netStatus" class="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Sepolia</div>
+        </div>
+        <div class="p-8 text-center">
+            <div class="mb-2 text-gray-400 text-sm">Ethereum Mainnet (Sepolia)</div>
+            <div class="flex items-center justify-center gap-3 mb-1">
+                <h1 id="balance" class="text-5xl font-bold tracking-tight">0.00</h1>
+                <span class="text-2xl font-medium text-gray-400">OMC</span>
+            </div>
+            <div id="addressDisplay" class="text-xs font-mono text-gray-500 mb-8">Not Connected</div>
+        </div>
+        <div class="px-8 pb-8 flex flex-col gap-4">
+            <div id="authSection">
+                <button id="connectBtn" class="mm-btn-primary w-full py-4 rounded-2xl font-bold text-white text-lg shadow-lg">Connect Wallet</button>
+            </div>
+            <div id="actionSection" class="hidden flex flex-col gap-6">
+                <div class="space-y-4 p-4 bg-black/20 rounded-2xl border border-white/5">
+                    <div class="flex items-center gap-2 text-sm font-semibold text-gray-300 mb-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        Send OmCoin
+                    </div>
+                    <input id="recipient" type="text" placeholder="Address (0x...)" class="mm-input w-full p-3 text-sm font-mono">
+                    <input id="amount" type="number" placeholder="Amount" class="mm-input w-full p-3 text-sm font-mono">
+                    <button id="sendBtn" class="mm-btn-primary w-full py-3 rounded-xl font-bold text-white text-sm">Transfer</button>
+                </div>
+                <button id="disconnectBtn" class="mm-btn-secondary w-full py-3 rounded-xl font-medium text-gray-400 text-sm">Disconnect Wallet</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const CONTRACT_ADDRESS = "0x2745F1De48D978523b9F9357fB8BF3BFDee5E53F";
+        const TOKEN_ABI = ["function balanceOf(address) view returns (uint256)", "function totalSupply() view returns (uint256)", "function transfer(address to, uint256 amount) returns (bool)"];
+        let userAccount = null;
+        async function connect() {
+            if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+            try {
+                await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xaa36a7' }] }).catch(async (err) => {
+                    if (err.code === 4902) {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0xaa36a7',
+                                chainName: 'Sepolia Test Network',
+                                nativeCurrency: { name: 'Sepolia Ether', symbol: 'SEP', decimals: 18 },
+                                rpcUrls: ['https://rpc.ankr.com/eth_sepolia'],
+                                blockExplorerUrls: ['https://sepolia.etherscan.io']
+                            }]
+                        });
+                    }
+                });
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAccount = accounts[0];
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('actionSection').classList.remove('hidden');
+                document.getElementById('addressDisplay').innerText = userAccount;
+                updateBalance();
+            } catch (e) { console.error(e); alert("Connection failed."); }
+        }
+        async function updateBalance() {
+            try {
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                if (await provider.getCode(CONTRACT_ADDRESS) === '0x') {
+                    throw new Error("No OmCoin contract found on Sepolia at the configured address.");
+                }
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, TOKEN_ABI, provider);
+                const bal = await contract.balanceOf(userAccount);
+                document.getElementById('balance').innerText = ethers.formatEther(bal);
+            } catch (e) { console.error(e); }
+        }
+        async function send() {
+            const to = document.getElementById('recipient').value;
+            const amt = document.getElementById('amount').value;
+            if (!to || !amt) return alert("Please enter recipient and amount.");
+            try {
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const signer = await provider.getSigner();
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, TOKEN_ABI, signer);
+                const tx = await contract.transfer(to, ethers.parseEther(amt));
+                alert("Transaction sent! Hash: " + tx.hash);
+                updateBalance();
+            } catch (e) { alert("Transfer failed."); }
+        }
+        document.getElementById('connectBtn').onclick = connect;
+        document.getElementById('sendBtn').onclick = send;
+        document.getElementById('disconnectBtn').onclick = () => {
+            userAccount = null;
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('actionSection').classList.add('hidden');
+            document.getElementById('addressDisplay').innerText = "Not Connected";
+        };
+    </script>
+</body>
+</html>

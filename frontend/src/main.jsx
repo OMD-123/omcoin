@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserProvider, Contract, formatUnits, isAddress, parseUnits } from 'ethers';
 import './styles.css';
 
-const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS || '';
+const contractAddress = '0x2745F1De48D978523b9F9357fB8BF3BFDee5E53F';
 const sepoliaChainId = '0xaa36a7';
 const contractAbi = [
   'function name() view returns (string)',
@@ -51,10 +51,6 @@ function App() {
   async function connectWallet() {
     if (!window.ethereum) {
       setStatus('No browser wallet found. Install MetaMask to connect.');
-      return;
-    }
-    if (!contractAddress) {
-      setStatus('Add VITE_CONTRACT_ADDRESS to frontend/.env.local after deployment.');
       return;
     }
     try {

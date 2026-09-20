@@ -1,52 +1,67 @@
-# 🪙 OmCoin (OMC) - Professional ERC-20 Token Ecosystem
+# OmCoin (OMC)
 
-OmCoin is a high-performance, transparent digital asset built on the Ethereum blockchain (Sepolia Testnet). This project demonstrates a full-stack Web3 implementation, from smart contract engineering to a professional user interface.
+OmCoin is an ERC-20 token and wallet dashboard for the Ethereum Sepolia testnet. The project includes the Solidity contract, Hardhat tests and a React interface with a MetaMask-inspired wallet experience.
 
-## 🚀 Features
+## Features
 
-- **Smart Contract**: Built with Solidity 0.8.20 and OpenZeppelin standards for maximum security.
-- **Professional Portal**: A MetaMask-style dashboard for managing assets, checking balances, and performing peer-to-peer transfers.
-- **Blockchain Integration**: Real-time interaction with the Sepolia network via `ethers.js`.
-- **Developer Ready**: Structured for easy deployment and extension.
+- ERC-20 token named `OmCoin` with symbol `OMC`
+- Fixed initial supply of 1,000,000 OMC
+- Sepolia wallet connection through MetaMask
+- Balance lookup, token metadata and network validation
+- OMC transfers with recipient and amount validation
+- Recent transfer activity stored locally in the browser
+- Sepolia Etherscan links for the contract and transactions
+- Standalone `portal.html` demo with no build step
 
-## 🛠️ Technical Stack
+## Deployed Contract
 
-- **Blockchain**: Ethereum (Sepolia Testnet)
-- **Smart Contract**: Solidity, Hardhat, OpenZeppelin
-- **Frontend**: React, TypeScript, Tailwind CSS, Ethers.js
-- **Wallet**: MetaMask
+- Network: Ethereum Sepolia
+- Address: `0x2745F1De48D978523b9F9357fB8BF3BFDee5E53F`
+- Explorer: https://sepolia.etherscan.io/address/0x2745F1De48D978523b9F9357fB8BF3BFDee5E53F
 
-## 📦 Project Structure
+The deployed contract address is public and is configured directly in the frontend. No `.env` file is required to run the wallet. Local environment files remain ignored by Git.
 
-- `/contracts`: The OmCoin smart contract.
-- `/frontend`: The professional React-based dashboard.
-- `/scripts`: Deployment scripts for the Sepolia network.
-- `/test`: Comprehensive regression tests for token functionality.
-- `portal.html`: A zero-build, standalone version of the portal for instant demonstration.
+## Run The Frontend
 
-## ⚙️ Setup & Installation
+```bash
+git clone https://github.com/OMD-123/omcoin.git
+cd omcoin/frontend
+npm install
+npm run dev
+```
 
-1. **Clone the repo**
-   ```bash
-   git clone https://github.com/OMD-123/omcoin.git
-   ```
-2. **Install Dependencies**
-   ```bash
-   cd frontend
-   npm install
-   ```
-3. **Configure Environment**
-   Create a `.env.local` in the `/frontend` directory:
-   ```env
-   VITE_CONTRACT_ADDRESS=your_contract_address_here
-   VITE_NETWORK=Sepolia
-   ```
-4. **Run the Portal**
-   ```bash
-   npm run dev
-   ```
+Open the Vite URL, install MetaMask, switch to Sepolia and connect your wallet. Sepolia ETH is required to pay transaction gas.
 
-## 📄 License
-Distributed under the MIT License.
+To use the standalone demo, open `portal.html` in a browser with MetaMask installed.
 
-Created by **Om Dandagvhal** as a Proof-of-Work for Blockchain Engineering.
+## Smart Contract Development
+
+From the repository root:
+
+```bash
+npm install
+npx hardhat test
+npx hardhat compile
+```
+
+To deploy a new instance, configure `RPC_URL` and `PRIVATE_KEY` only in a local `.env` file, then run:
+
+```bash
+npx hardhat run scripts/deploy.js --network sepolia
+```
+
+Never commit private keys, RPC credentials or local environment files.
+
+## Project Structure
+
+```text
+contracts/       OmCoin Solidity contract
+frontend/        React + Vite wallet dashboard
+scripts/         Hardhat deployment scripts
+test/            Hardhat contract tests
+portal.html      Standalone wallet demo
+```
+
+## License
+
+MIT
