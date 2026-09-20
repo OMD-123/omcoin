@@ -3,58 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OmCoin | Professional Asset Portal</title>
+    <title>OmCoin | Portfolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.10.0/ethers.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #0a0a0a; color: #fff; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(30, 30, 30, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        body { background-color: #0f0f0f; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .card { background-color: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 24px; }
+        .input-field { background-color: #121212; border: 1px solid #333; border-radius: 12px; color: white; }
+        .input-field:focus { border-color: #f59e0b; outline: none; }
+        .btn-orange { background-color: #d97706; transition: all 0.2s; }
+        .btn-orange:hover { background-color: #b45309; }
+        .btn-orange:active { transform: scale(0.98); }
+        .icon-circle { background-color: #2a2a2a; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #f59e0b; transition: all 0.2s; cursor: pointer; }
+        .icon-circle:hover { background-color: #3a3a3a; color: #fbbf24; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="text-center mb-10">
-        <h1 class="text-6xl font-bold text-[#d4ff00] mb-2">Money with momentum.</h1>
-        <p class="text-gray-400 text-lg">OmCoin: Transparent, direct value transfer.</p>
-    </div>
+<body class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- LEFT & CENTER: Portfolio and Send -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Portfolio Card -->
+            <div class="card p-8 relative">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-xl font-semibold text-gray-400">Portfolio</h2>
+                    <button onclick="updateBalance()" class="text-gray-500 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="mb-10">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">TOTAL BALANCE</p>
+                    <div class="flex items-baseline gap-2">
+                        <h1 id="balance" class="text-6xl font-bold">0.00</h1>
+                        <span class="text-2xl font-medium text-gray-500">OMC</span>
+                    </div>
+                    <p id="statusText" class="text-sm text-gray-500 mt-2">Connect to view your balance</p>
+                </div>
 
-    <div class="glass p-8 rounded-[32px] w-full max-w-md text-center shadow-2xl">
-        <div id="connectArea">
-            <button id="connectBtn" class="bg-[#037ddc] hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-2xl w-full text-xl transition-all transform active:scale-95">
-                Connect Wallet
-            </button>
-        </div>
-
-        <div id="mainArea" class="hidden flex flex-col gap-8">
-            <div>
-                <p class="text-gray-500 uppercase text-xs tracking-widest mb-2">Your Balance</p>
-                <div class="text-5xl font-bold mb-1"><span id="balance">0.00</span> <span class="text-2xl text-gray-600">OMC</span></div>
-                <p id="address" class="text-xs text-gray-600 font-mono truncate px-4"></p>
+                <div class="flex gap-8 justify-start">
+                    <div class="flex flex-col items-center gap-2 group cursor-pointer" onclick="connect()">
+                        <div class="icon-circle">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                        </div>
+                        <span class="text-xs font-medium text-gray-400 group-hover:text-white">Connect</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 group cursor-pointer" onclick="document.getElementById('sendSection').scrollIntoView({behavior: 'smooth'})">
+                        <div class="icon-circle">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                        </div>
+                        <span class="text-xs font-medium text-gray-400 group-hover:text-white">Send</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 group cursor-pointer" onclick="window.open('https://sepolia.etherscan.io/address/0x2745F1De48D978523b9F9357fB8BF3BFDee5E53F', '_blank')">
+                        <div class="icon-circle">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        </div>
+                        <span class="text-xs font-medium text-gray-400 group-hover:text-white">Explore</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="h-px bg-gray-800 w-full"></div>
+            <!-- Send Section -->
+            <div id="sendSection" class="card p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Send OMC</h2>
+                    <span class="text-xs font-bold text-gray-500 uppercase">On Sepolia</span>
+                </div>
 
-            <div class="text-left space-y-4">
-                <h3 class="text-lg font-semibold text-gray-200">Send OmCoin</h3>
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-xs text-gray-500 ml-1">Recipient Address</label>
-                        <input id="recipient" type="text" placeholder="0x..." class="w-full bg-[#2a2a2a] border border-gray-700 p-3 rounded-xl text-white focus:border-blue-500 outline-none transition-all">
+                <div class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase ml-1">To</label>
+                        <input id="recipient" type="text" placeholder="0x recipient address" class="input-field w-full p-4 text-sm font-mono">
                     </div>
-                    <div>
-                        <label class="text-xs text-gray-500 ml-1">Amount (OMC)</label>
-                        <input id="amount" type="number" placeholder="0.0" class="w-full bg-[#2a2a2a] border border-gray-700 p-3 rounded-xl text-white focus:border-blue-500 outline-none transition-all">
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold text-gray-500 uppercase ml-1">Amount</label>
+                            <span class="text-xs text-orange-500 font-medium">Max: <span id="maxBalance">0.00</span> OMC</span>
+                        </div>
+                        <div class="relative">
+                            <input id="amount" type="number" placeholder="0.00" class="input-field w-full p-4 text-sm font-mono pr-16">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold">OMC</span>
+                        </div>
                     </div>
-                    <button id="sendBtn" class="bg-[#037ddc] hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl w-full transition-all transform active:scale-95">
-                        Send Tokens
+
+                    <button id="actionBtn" onclick="handleAction()" class="btn-orange w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg">
+                        Connect wallet to send
                     </button>
+                    <p id="footerText" class="text-center text-xs text-gray-600 mt-4">Connect a wallet to view your OMC balance.</p>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="mt-8 text-gray-600 text-xs">
-        OmCoin Network &bull; Sepolia Testnet &bull; 2026
+        <!-- RIGHT: Activity -->
+        <div class="card p-8 flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Activity</h2>
+                <span class="text-xs text-gray-500 uppercase font-bold">Latest</span>
+            </div>
+
+            <div id="activityList" class="space-y-6 overflow-y-auto max-h-[500px] pr-2">
+                <!-- Mock activity items for visuals -->
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-orange-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold">Sent 500,000 OMC</p>
+                            <p class="text-xs text-gray-500">To 0x2be...d9c8</p>
+                        </div>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-orange-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold">Sent 50,000 OMC</p>
+                            <p class="text-xs text-gray-500">To 0x851...F1d8</p>
+                        </div>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -67,26 +144,35 @@
             try {
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 account = accounts[0];
-                document.getElementById('connectArea').classList.add('hidden');
-                document.getElementById('mainArea').classList.remove('hidden');
-                document.getElementById('address').innerText = account;
+                document.getElementById('statusText').innerText = "Wallet connected";
+                document.getElementById('actionBtn').innerText = "Send Tokens";
+                document.getElementById('footerText').innerText = "Logged in as " + account.substring(0,6) + "..." + account.substring(account.length-4);
                 updateBalance();
             } catch (e) { alert("Connection failed"); }
         }
 
         async function updateBalance() {
+            if (!account) return;
             try {
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 const contract = new ethers.Contract(CONTRACT_ADDR, ABI, provider);
                 const bal = await contract.balanceOf(account);
-                document.getElementById('balance').innerText = ethers.formatEther(bal);
+                const formatted = ethers.formatEther(bal);
+                document.getElementById('balance').innerText = parseFloat(formatted).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('maxBalance').innerText = parseFloat(formatted).toLocaleString();
             } catch (e) { console.error(e); }
         }
 
-        async function send() {
+        async function handleAction() {
+            if (!account) {
+                connect();
+                return;
+            }
+
             const to = document.getElementById('recipient').value;
             const amt = document.getElementById('amount').value;
-            if (!to || !amt) return alert("Enter address and amount");
+            if (!to || !amt) return alert("Please enter a recipient address and amount");
+
             try {
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 const signer = await provider.getSigner();
@@ -98,7 +184,7 @@
         }
 
         document.getElementById('connectBtn').onclick = connect;
-        document.getElementById('sendBtn').onclick = send;
+        document.getElementById('actionBtn').onclick = handleAction;
     </script>
 </body>
 </html>
