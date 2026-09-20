@@ -13,13 +13,8 @@ OmCoin is an ERC-20 token and wallet dashboard for the Ethereum Sepolia testnet.
 - Sepolia Etherscan links for the contract and transactions
 - Standalone `portal.html` demo with no build step
 
-## Deployed Contract
 
-- Network: Ethereum Sepolia
-- Address: `0x2745F1De48D978523b9F9357fB8BF3BFDee5E53F`
-- Explorer: https://sepolia.etherscan.io/address/0x2745F1De48D978523b9F9357fB8BF3BFDee5E53F
 
-The deployed contract address is public and is configured directly in the frontend. No `.env` file is required to run the wallet. Local environment files remain ignored by Git.
 
 ## Run The Frontend
 
