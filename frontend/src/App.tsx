@@ -1,0 +1,171 @@
+import React, { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+
+const CONTRACT_ADDRESS = "0x2745F1De48D978523b9F9357fB8BF3BFDee5E53F";
+const TOKEN_ABI = [
+  "function balanceOf(address) view returns (uint256)",
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)"
+];
+
+function App() {
+  const [account, setAccount] = useState<string | null>(null);
+  const [balance, setBalance] = useState<string>("0.00");
+  const [recipient, setRecipient] = useState("");
+  const [amount, setAmount] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function connectWallet() {
+    if (!window.ethereum) return alert("Please install MetaMask!");
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      setAccount(accounts[0]);
+      fetchBalance(accounts[0]);
+    } catch (err) {
+      console.error(err);
+      alert("Connection failed");
+    }
+  }
+
+  async function fetchBalance(address: string) {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, TOKEN_ABI, provider);
+      const balanceWei = await contract.balanceOf(address);
+      setBalance(ethers.formatEther(balanceWei));
+    } catch (err) {
+      console.error("Balance error:", err);
+      setBalance("Error");
+    }
+  }
+
+  async function handleTransfer() {
+    if (!recipient || !amount) return alert("Please enter a recipient address and amount");
+    setLoading(true);
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, TOKEN_ABI, signer);
+      const tx = await contract.transfer(recipient, ethers.parseEther(amount));
+      await tx.wait();
+      alert("Transfer Successful!");
+      fetchBalance(account!);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.reason || "Transfer failed. Check your gas (ETH) balance!");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ 
+      backgroundColor: '#0a0a0a', 
+      color: '#fff', 
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column',
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      fontFamily: 'Inter, sans-serif',
+      padding: '20px'
+    }}>
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h1 style={{ fontSize: '64px', fontWeight: 'bold', color: '#d4ff00', margin: '0' }}>
+          Money with momentum.
+        </h1>
+        <p style={{ color: '#aaa', fontSize: '18px' }}>OmCoin: Transparent, direct value transfer.</p>
+      </div>
+
+      <div style={{ 
+        backgroundColor: '#1e1e1e', 
+        padding: '40px', 
+        borderRadius: '32px', 
+        width: '100%',
+        maxWidth: '500px', 
+        textAlign: 'center',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
+        border: '1px solid #333'
+      }}>
+        {!account ? (
+          <button 
+            onClick={connectWallet} 
+            style={{ 
+              backgroundColor: '#037ddc', 
+              color: 'white', 
+              border: 'none', 
+              padding: '20px 40px', 
+              borderRadius: '16px', 
+              fontSize: '20px', 
+              fontWeight: 'bold', 
+              cursor: 'pointer',
+              width: '100%',
+              transition: '0.3s'
+            }}
+          >
+            Connect Wallet
+          </button>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            <div>
+              <p style={{ color: '#888', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>Your Balance</p>
+              <div style={{ fontSize: '48px', fontWeight: 'bold', margin: '10px 0' }}>
+                {balance} <span style={{ fontSize: '24px', color: '#666' }}>OMC</span>
+              </div>
+              <p style={{ fontSize: '12px', color: '#555', fontFamily: 'monospace' }}>{account}</p>
+            </div>
+            <div style={{ height: '1px', backgroundColor: '#333' }}></div>
+            <div style={{ textAlign: 'left' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '15px', color: '#eee' }}>Send OmCoin</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <label style={{ fontSize: '12px', color: '#888' }}>Recipient Address</label>
+                  <input 
+                    placeholder="0x..." 
+                    value={recipient}
+                    onChange={(e) => setRecipient(e.target.value)}
+                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #444', backgroundColor: '#2a2a2a', color: 'white', fontSize: '14px' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <label style={{ fontSize: '12px', color: '#888' }}>Amount (OMC)</label>
+                  <input 
+                    placeholder="0.0" 
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #444', backgroundColor: '#2a2a2a', color: 'white', fontSize: '14px' }}
+                  />
+                </div>
+                <button 
+                  onClick={handleTransfer}
+                  disabled={loading}
+                  style={{ 
+                    backgroundColor: '#037ddc', 
+                    color: 'white', 
+                    border: 'none', 
+                    padding: '15px', 
+                    borderRadius: '12px', 
+                    fontWeight: 'bold', 
+                    fontSize: '16px',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    marginTop: '10px',
+                    transition: '0.2s'
+                  }}
+                >
+                  {loading ? "Sending..." : "Send Tokens"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ marginTop: '30px', color: '#444', fontSize: '12px' }}>
+        OmCoin Network &bull; Sepolia Testnet &bull; 2026
+      </div>
+    </div>
+  );
+}
+
+export default App;
